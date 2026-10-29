@@ -25,7 +25,7 @@ Developer -> Backstage template -> GitHub repo (code + catalog-info + reusable C
 | # | Module | Status |
 |---|--------|--------|
 | 00 | [Foundations: lab environment, repo topology, standards](00-foundations/README.md) | done |
-| 01 | Backstage and developer portal engineering | planned |
+| 01 | [Backstage and developer portal engineering](01-backstage/README.md) | done |
 | 02 | Internal Developer Platform | planned |
 | 03 | [GitOps and ArgoCD](03-gitops-argocd/README.md) | done |
 | 04 | [Kubernetes and cloud-native platform](04-kubernetes-platform/README.md) | done |
