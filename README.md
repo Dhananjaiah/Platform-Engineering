@@ -30,7 +30,7 @@ Developer -> Backstage template -> GitHub repo (code + catalog-info + reusable C
 | 03 | GitOps and ArgoCD | planned |
 | 04 | Kubernetes and cloud-native platform | planned |
 | 05 | [Terraform and IaC](05-terraform/README.md) | done |
-| 06 | GitHub Actions / CI-CD platform | planned |
+| 06 | [GitHub Actions / CI-CD platform](06-github-actions/README.md) | done |
 | 07 | Staff-level IC: influence, adoption, roadmap | planned |
 | 08 | Capstone: end-to-end golden path | planned |
 
