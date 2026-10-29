@@ -17,38 +17,38 @@
 ### 5. Template drift: 150 services were scaffolded from v1; v1.4 fixes a security issue in the generated CI
 **Answer.** Scaffolder is fire-and-forget, so I rely on layered controls: keep generated files thin and pull logic into reusable workflows/modules/charts that update centrally (the security fix ships by moving `@v1` of the workflow); stamp each repo with template and version annotations; query the catalog for who is behind; run a codemod bot that opens update PRs per repo (migration scripts per version; auto-merge for safe changes); enforce critical controls centrally (rulesets, required workflows, Kyverno) so drift in non-critical files is tolerable; track "on current template" in a scorecard with a deadline; mark old template deprecated. Alternatives: `copier update` or OpenRewrite for deeper code changes.
 
-### 7. Security review: "A developer can run a template that publishes to any repo or runs arbitrary code"
+### 6. Security review: "A developer can run a template that publishes to any repo or runs arbitrary code"
 **Answer.** Templates run server-side with integration credentials, so authoring a template is privileged. Mitigations: CODEOWNERS and review on the templates repo; `catalog.rules` allowing Template kind only from the templates repo; `RepoUrlPicker` `allowedOwners/allowedHosts`; scaffolder permissions limiting who can execute which template (`scaffolder.template.parameter.read/step.read` and conditional rules by owner); GitHub App with minimal permissions rather than a PAT; custom actions validate input schemas, never `shell`-exec parameters; `reading.allow` URL allowlist; audit logging; separate sandbox for experimental templates.
 
-### 8. SSO login fails for some users after an IdP group restructure
+### 7. SSO login fails for some users after an IdP group restructure
 **Answer.** Sign-in resolver maps IdP identity to a catalog User entity; if the Entra sync filter excludes them (e.g. group naming prefix changed) there is no User entity so sign-in fails ("Failed to sign-in, unable to resolve user identity"). Diagnose: backend logs for the resolver error, check the User entity exists (`/api/catalog/entities?filter=kind=user,metadata.name=...`), compare email/username attributes with the resolver (`emailMatchingUserEntityProfileEmail`). Fix the sync filter/mapping, trigger a refresh. Prevent: monitor the org sync (entity count drift alerts), test sign-in for a canary account, resolver fallback chain with explicit rules, and communicate IdP changes to the platform team.
 
-### 9. The catalog processing loop is pegging CPU and GitHub API rate limits are exhausted
+### 8. The catalog processing loop is pegging CPU and GitHub API rate limits are exhausted
 **Answer.** Check number of locations/entities and processing interval, provider schedules, whether PAT is shared by many integrations. Fix: GitHub App auth, event-based updates via webhooks instead of aggressive polling, longer `processingInterval`, filter repositories (topics/path), split heavy providers, increase Postgres resources, shard by running catalog on dedicated replicas (`backend` split deployment with `plugin` hosts), remove duplicate locations. Add alerts on rate-limit headroom and processing duration.
 
-### 10. Leadership asks: "What is Backstage's ROI?"
+### 9. Leadership asks: "What is Backstage's ROI?"
 **Answer.** Tie to outcomes with numbers: time-to-first-deploy before/after (e.g. 2 weeks -> 1 day), tickets removed (infra/DB requests), onboarding time for new hires, MTTR improvement via ownership + runbooks + on-call visibility (incidents where owner was found in < 2 min), duplicated tooling retired. Cost side: platform headcount, hosting, plugin maintenance. Present as: N engineers x hours saved/month x loaded cost vs platform cost, plus risk reduction (fewer unowned services). Be honest on measurement (survey + telemetry) and refresh quarterly.
 
-### 11. Backstage vs Port vs Cortex vs Roadie vs Humanitec: how do you choose?
+### 10. Backstage vs Port vs Cortex vs Roadie vs Humanitec: how do you choose?
 **Answer.** Criteria: customization needs, team capacity to build/run, time-to-value, governance/scorecards depth, cost, vendor risk. Backstage: maximum flexibility and ecosystem, real engineering investment (a product team of 3-6 for a large org). Port/Cortex: faster value, data-model/scorecard UI, SaaS cost and less extensibility. Roadie: managed Backstage, keeps plugin ecosystem, less control of infra. Humanitec: orchestration of environments/resources (platform orchestrator), complements a portal. My decision: for a >300-engineer org with strong TypeScript capability and unique workflows, Backstage; for <100 engineers wanting value in weeks, a SaaS portal; re-evaluate yearly with usage data. Avoid "ours is bigger" thinking: the portal is the UI; the golden paths and platform APIs are the value.
 
-### 12. A team wants a custom plugin to show data from their internal system. How do you handle it?
+### 11. A team wants a custom plugin to show data from their internal system. How do you handle it?
 **Answer.** Intake via RFC/ADR: is it generally useful? If one team only: they build it (inner-source) under platform guidelines (design system, `fetchApi`, backend does auth, no secrets in frontend, tests, observability) with a platform review; platform provides a plugin template (`yarn new` skeleton + CI) and a sandbox. Distribute via the monorepo packages with CODEOWNERS and a support contract; deprecation policy if abandoned. Alternatives: link/iframe/proxy and entity annotation for simple cases. Every plugin has an owner and an upgrade owner.
 
-### 13. The scaffolder task failed halfway: repo created but infra PR failed
+### 12. The scaffolder task failed halfway: repo created but infra PR failed
 **Answer.** Scaffolder doesn't roll back. Design for idempotency and recovery: actions safe to re-run (check-if-exists), clear error messages, "retry from step" (task retry/recovery feature) or documented cleanup; order steps so irreversible ones are last or are PRs (reversible); the custom action uses an idempotency key. For this incident: open the task log, fix the cause (token permission/CI failure), re-run the failed step or create the PR manually; add a synthetic canary and alert on task failure rates; add a cleanup action for abandoned repos.
 
-### 14. How do you run Backstage in a multi-region, highly-available way?
+### 13. How do you run Backstage in a multi-region, highly-available way?
 **Answer.** Stateless backend replicas behind ingress (2+ per region), shared Postgres with HA and PITR (zone-redundant; cross-region read replica/geo-restore for DR), Redis for cache if needed, static assets served via the same app or CDN. Failure analysis: portal outage doesn't impact deployments (delivery runs through GitHub/ArgoCD), so RTO ~1 h is acceptable; keep catalog rebuildable from source plus backups of scaffolder history. DR drill: restore DB to another region, redeploy from GitOps, verify sign-in.
 
-### 15. Developers say the catalog graph and entity pages are slow
+### 14. Developers say the catalog graph and entity pages are slow
 **Answer.** Profile: browser network tab for slow `/api/catalog` calls, backend latency metrics, Postgres slow queries (`pg_stat_statements`), N+1 relations on entity pages, entity count growth. Fixes: use `by-query` with fields and pagination, add indexes where plugin-supported, scale Postgres, cache plugin responses (`CacheService`/Redis), reduce relation depth in the graph, lazy-load heavy tabs, upgrade (many perf fixes land in releases), prune orphaned/dead entities. Add an SLO and a k6 load test in CI for regressions.
 
-### 16. Teams complain the Backstage template creates repos that fail their company's compliance checks
+### 15. Teams complain the Backstage template creates repos that fail their company's compliance checks
 **Answer.** Compliance requirements must live in the golden path *and* be enforced centrally: add the controls to the template (branch protection ruleset via org rules, required workflows, CODEOWNERS, SAST/dep scanning via reusable workflow, secret scanning enabled), and add policy/scorecard checks that detect non-compliance on existing repos. Treat compliance as a template owner responsibility: a compliance partner reviews template changes and gets a dashboard of fleet status. Use the drift process for remediation of older repos.
 
-### 17. Explain the new backend system and why it matters
+### 16. Explain the new backend system and why it matters
 **Answer.** Plugins and modules declare dependencies on core services (`logger`, `httpRouter`, `database`, `auth`, `httpAuth`, `scheduler`, `cache`, `urlReader`) through `createBackendPlugin/createBackendModule`; the backend composes them with `backend.add(...)`. Benefits: no manual wiring files, consistent auth by default (routes protected unless explicitly allowed), easy to split plugins across deployments, testability (`startTestBackend`, `mockServices`), extension points for catalog/scaffolder/permission instead of forking. When writing a plugin: depend on services, keep init small, add auth policy intentionally, don't reach for globals.
 
-### 18. You inherit a Backstage that has 40 plugins and nobody knows why. What do you do?
+### 17. You inherit a Backstage that has 40 plugins and nobody knows why. What do you do?
 **Answer.** Inventory with usage analytics per plugin and owner, security review of tokens/proxies, version compatibility matrix, upgrade pain score. Remove unused (log a deprecation notice, 30-day window), consolidate overlapping, pin the rest with owners and tests, and write an ADR for the "plugin admission policy" (must have owner, SLA, security review, usage target). Result: fewer moving parts, faster upgrades.

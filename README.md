@@ -32,9 +32,9 @@ Developer -> Backstage template -> GitHub repo (code + catalog-info + reusable C
 | 05 | [Terraform and IaC](05-terraform/README.md) | done |
 | 06 | [GitHub Actions / CI-CD platform](06-github-actions/README.md) | done |
 | 07 | [Staff-level IC: influence, adoption, roadmap](07-staff-leadership/README.md) | done |
-| 08 | Capstone: end-to-end golden path | planned |
+| 08 | [Capstone: end-to-end golden path](08-capstone/README.md) | done |
 
-Recommended order for learning: 00, 05, 06, 03, 04, 01, 02, 07, 08.
+Recommended order for learning: 00, 05, 06, 03, 04, 01, 02, 07, 08. Interview kit (mock interviews, rapid-fire, glossary): [interview/](interview/README.md).
 
 ## Lab layout
 ```
