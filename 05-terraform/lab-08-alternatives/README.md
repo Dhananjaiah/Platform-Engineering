@@ -17,7 +17,7 @@ Expected: same plan as Terraform (state format compatible). Why it matters: lice
 ## Part B - Crossplane (infra as Kubernetes APIs)
 ```bash
 helm repo add crossplane-stable https://charts.crossplane.io/stable && helm repo update
-helm install crossplane crossplane-stable/crossplane -n crossplane-system --create-namespace
+helm install crossplane crossplane-stable/crossplane -n crossplane-system --create-namespace --version 1.20.1   # v1 API used in these labs; v2 serves it but prefers namespaced XRs
 kubectl -n crossplane-system rollout status deploy/crossplane
 ```
 Install the S3 provider family (works against MinIO via endpoint config):
