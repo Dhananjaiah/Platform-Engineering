@@ -28,7 +28,7 @@ Developer -> Backstage template -> GitHub repo (code + catalog-info + reusable C
 | 01 | Backstage and developer portal engineering | planned |
 | 02 | Internal Developer Platform | planned |
 | 03 | [GitOps and ArgoCD](03-gitops-argocd/README.md) | done |
-| 04 | Kubernetes and cloud-native platform | planned |
+| 04 | [Kubernetes and cloud-native platform](04-kubernetes-platform/README.md) | done |
 | 05 | [Terraform and IaC](05-terraform/README.md) | done |
 | 06 | [GitHub Actions / CI-CD platform](06-github-actions/README.md) | done |
 | 07 | Staff-level IC: influence, adoption, roadmap | planned |
